@@ -72,7 +72,7 @@ public:
 			m_head = m_tail = newNode;
 		else {
 			DoublyList<T>::Iterator it = getTail();
-			for (int i = 0; i < pos && it->next; ++i)
+			for (int i = 0; i < pos - 1 && it->next; ++i)
 				it = it->next;
 
 			if (!it) return;
@@ -113,6 +113,7 @@ public:
 
 		if (iter == m_head && iter == m_tail) {
 			delete iter;
+			m_head = m_tail = nullptr;
 			return output;
 		}
 
@@ -126,7 +127,9 @@ public:
 			iter->prev->next = iter->next;
 			iter->next->prev = iter->prev;
 		}
+
 		delete iter;
+		iter = nullptr;
 		return output;
 	}
 
@@ -137,6 +140,7 @@ public:
 
 		if (iter == m_head && iter == m_tail) {
 			delete iter;
+			m_head = m_tail = nullptr;
 			return output;
 		}
 
@@ -150,7 +154,9 @@ public:
 			iter->prev->next = iter->next;
 			iter->next->prev = iter->prev;
 		}
+
 		delete iter;
+		iter = nullptr;
 		return output;
 	}
 
