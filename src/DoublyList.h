@@ -3,166 +3,192 @@
 
 template<typename T>
 struct Node {
-	T value;
-	Node* next;
-	Node* prev;
+    T value;
+    Node *next;
+    Node *prev;
 
-	Node(T data) : value(data), next(nullptr), prev(nullptr) {
-	}
+    Node(T data) : value(data), next(nullptr), prev(nullptr) {}
 
-	~Node() {
-		next = prev = nullptr;
-	}
+    ~Node() {
+        next = prev = nullptr;
+    }
 };
 
 template<typename T>
 class DoublyList {
 private:
-	Node<T>* m_head = nullptr;
-	Node<T>* m_tail = nullptr;
+    Node<T> *m_head = nullptr;
+    Node<T> *m_tail = nullptr;
 
 public:
-	typedef Node<T>* Iterator;
-	Iterator getHead() const {
-		return m_head;
-	}
-	Iterator getTail() const {
-		return m_tail;
-	}
-	T getValue(const Iterator& it) const {
-		return it->value;
-	}
-	Iterator getNext(const Iterator& it) const {
-		return it->next;
-	}
-	Iterator getPrev(const Iterator& it) const {
-		return it->prev;
-	}
+    typedef Node<T> *Iterator;
+    Iterator getHead() const {
+        return m_head;
+    }
+    Iterator getTail() const {
+        return m_tail;
+    }
+    T getValue(const Iterator &it) const {
+        return it->value;
+    }
+    Iterator getNext(const Iterator &it) const {
+        return it->next;
+    }
+    Iterator getPrev(const Iterator &it) const {
+        return it->prev;
+    }
 
-	bool isEmpty() const {
-		return !m_head || !m_tail;
-	}
+    bool isEmpty() const {
+        return !m_head || !m_tail;
+    }
 
-	void pushToHead(const T& data) {
-		Node<T>* newNode = new Node<T>(data);
-		if (isEmpty()) {
-			m_head = m_tail = newNode;
-		} else {
-			m_head->next = newNode;
-			newNode->prev = m_head;
-			m_head = newNode;
-		}
-	}
+    void pushToTail(const T &data) {
+        Node<T> *newNode = new Node<T>(data);
+        if (isEmpty()) {
+            m_head = m_tail = newNode;
+        }
+        else {
+            m_tail->next = newNode;
+            newNode->prev = m_tail;
+            m_tail = newNode;
+        }
+    }
 
-	void pushToTail(const T& data) {
-		Node<T>* newNode = new Node<T>(data);
-		if (isEmpty()) {
-			m_head = m_tail = newNode;
-		} else {
-			m_tail->prev = newNode;
-			newNode->next = m_tail;
-			m_tail = newNode;
-		}
-	}
+    void pushToHead(const T &data) {
+        Node<T> *newNode = new Node<T>(data);
+        if (isEmpty()) {
+            m_head = m_tail = newNode;
+        }
+        else {
+            m_head->prev = newNode;
+            newNode->next = m_head;
+            m_head = newNode;
+        }
+    }
 
-	void pushAfter(const T& data, const int& pos) {
-		Node<T>* newNode = new Node<T>(data);
+    void pushAfter(const T &data, const int &pos) {
+        Node<T> *newNode = new Node<T>(data);
 
-		if (isEmpty())
-			m_head = m_tail = newNode;
-		else {
-			DoublyList<T>::Iterator it = getTail();
-			for (int i = 0; i < pos - 1 && it->next; ++i)
-				it = it->next;
+        if (isEmpty())
+            m_head = m_tail = newNode;
+        else {
+            Iterator it = getHead();
+            for (int i = 0; i < pos - 1 && it->next; ++i)
+                it = it->next;
 
-			if (!it) return;
+            if (!it) return;
 
-			if (it == m_head)
-				pushToHead(data);
-			else {
-				newNode->next = it->next;
-				newNode->prev = it;
-				it->next->prev = newNode;
-				it->next = newNode;
-			}
-		}
-	}
+            newNode->next = it->next;
+            newNode->prev = it;
+            if (it != m_tail)
+                it->next->prev = newNode;
+            it->next = newNode;
+        }
+    }
 
-	void pushBefore(const T& data, Iterator& it) {
-		if (it == m_tail)
-			pushToTail(data);
-		else {
-			Node<T>* newNode = new Node<T>(data);
-			newNode->next = it;
-			newNode->prev = it->prev;
-			it->prev->next = newNode;
-			it->prev = newNode;
-		}
-	}
+    void pushAfter(const T &data, const Iterator &pos) {
+        if (!pos) return;
 
-	T pop(const int& pos) {
-		if (isEmpty()) return std::numeric_limits<int>::min();
+        if (pos == m_tail)
+            pushToTail(data);
+        else if (pos == m_head)
+            pushAfter(data, 1);   // first node - head
+        else {
+            Node<T> *newNode = new Node<T>(data);
+            newNode->next = pos->next;
+            newNode->prev = pos;
+            pos->next->prev = newNode;
+            pos->next = newNode;
+        }
+    }
 
-		DoublyList<T>::Iterator iter = getTail();
-		for (int i = 0; i < pos; ++i)
-			iter = getNext(iter);
+    T pop(const int &pos) {
+        if (isEmpty()) return std::numeric_limits<int>::min();
 
-		if (!iter) return std::numeric_limits<int>::min();
+        Iterator iter = getHead();
+        for (int i = 0; i < pos && iter; ++i)
+            iter = getNext(iter);
 
-		T output = iter->value;
+        if (!iter) return std::numeric_limits<int>::min();
 
-		if (iter == m_head && iter == m_tail) {
-			delete iter;
-			m_head = m_tail = nullptr;
-			return output;
-		}
+        T output = iter->value;
 
-		if (iter == m_head) {
-			m_head = iter->prev;
-			m_head->next = nullptr;
-		} else if (iter == m_tail) {
-			m_tail = iter->next;
-			m_tail->prev = nullptr;
-		} else {
-			iter->prev->next = iter->next;
-			iter->next->prev = iter->prev;
-		}
+        if (iter == m_head && iter == m_tail) {
+            delete iter;
+            m_head = m_tail = nullptr;
+            return output;
+        }
 
-		delete iter;
-		iter = nullptr;
-		return output;
-	}
+        if (iter == m_tail) {
+            m_tail = iter->prev;
+            m_tail->next = nullptr;
+        }
+        else if (iter == m_head) {
+            m_head = iter->next;
+            m_head->prev = nullptr;
+        }
+        else {
+            iter->prev->next = iter->next;
+            iter->next->prev = iter->prev;
+        }
 
-	T pop(Iterator& iter) {
-		if (isEmpty()) return std::numeric_limits<int>::min();
+        delete iter;
+        return output;
+    }
 
-		T output = iter->value;
+    T pop(Iterator &iter) {
+        if (isEmpty()) return std::numeric_limits<int>::min();
 
-		if (iter == m_head && iter == m_tail) {
-			delete iter;
-			m_head = m_tail = nullptr;
-			return output;
-		}
+        Iterator oldIter(iter);
 
-		if (iter == m_head) {
-			m_head = iter->prev;
-			m_head->next = nullptr;
-		} else if (iter == m_tail) {
-			m_tail = iter->next;
-			m_tail->prev = nullptr;
-		} else {
-			iter->prev->next = iter->next;
-			iter->next->prev = iter->prev;
-		}
+        T output = oldIter->value;
 
-		delete iter;
-		iter = nullptr;
-		return output;
-	}
+        if (oldIter == m_head && oldIter == m_tail) {
+            delete oldIter;
+            m_head = m_tail = nullptr;
+            return output;
+        }
 
-	void clear() {
-		while (!isEmpty()) {
-			pop(m_head);
-		}
-	}
+        if (oldIter == m_tail) {
+            m_tail = oldIter->prev;
+            m_tail->next = nullptr;
+        }
+        else if (oldIter == m_head) {
+            m_head = oldIter->next;
+            m_head->prev = nullptr;
+        }
+        else {
+            oldIter->prev->next = oldIter->next;
+            oldIter->next->prev = oldIter->prev;
+        }
+
+        delete oldIter;
+        return output;
+    }
+
+    void clear() {
+        while (!isEmpty()) {
+            pop(m_head);
+        }
+    }
+
+    void sort() {                        // assume list isn't empty
+        if (m_head != m_tail) {          // one node = nothing to sort
+            Iterator node = m_head;
+            while (node->next) {
+                Iterator current = node;
+                if (current->next->value < current->value) {
+                    T valueToPush = pop(current->next);
+                    while (current->prev && valueToPush < current->value)
+                        current = current->prev;
+                    if (current == m_head)
+                        pushToHead(valueToPush);
+                    else
+                        pushAfter(valueToPush, current);
+                }
+                else
+                    node = node->next;
+            }
+        }
+    }
 };
