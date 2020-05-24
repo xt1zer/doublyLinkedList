@@ -66,7 +66,7 @@ void save(DoublyList<int> &list, const std::string &fileName) {
         outFile.open(fileName, std::ios::out);
     }
 
-    DoublyList<int>::Iterator it = list.getTail();
+    DoublyList<int>::Iterator it = list.getHead();
 
     while (it) {
         outFile << it->value << " ";
